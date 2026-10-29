@@ -1,34 +1,34 @@
-nombre: Comppilar APK
-en:
-  flujo_de_trabajo:
-  empujar:
-    ramas: [principal]
-permisos:
-  Contenido: escribir
-empleos:
-  construir:
+name: Compilar APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  build:
     runs-on: ubuntu-latest
-    pasos:
-      - usos: actions/setup-java@v4
-        con:
-          distribución: temurin
-          versión de Java: '17'
-      - utiliza: gradle/actions/setup-gradle@v4
-        con:
-          versión de Gradle: '8.9'
-      - nombre: Crear proyecto
-        correr: |
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Crear proyecto
+        run: |
           mkdir -p proj && cd proj
           cat > settings.gradle.kts <<'EOF_FILE'
-          pluginManagement { repositorios { google(); mavenCentral(); gradlePluginPortal() } }
-          dependencyResolutionManagement { repositorios { google(); mavenCentral() } }
-          rootProject.nombre = "TextoBloqueo"
-          incluir(":aplicación")
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositories { google(); mavenCentral() } }
+          rootProject.name = "TextoBloqueo"
+          include(":app")
           EOF_FILE
           cat > build.gradle.kts <<'EOF_FILE'
-          complementos {
-              id("com.android.application") versión "8.5.2" aplicar falso
-              id("org.jetbrains.kotlin.android") versión "1.9.24" aplicar falso
+          plugins {
+              id("com.android.application") version "8.5.2" apply false
+              id("org.jetbrains.kotlin.android") version "1.9.24" apply false
           }
           EOF_FILE
           cat > gradle.properties <<'EOF_FILE'
@@ -36,22 +36,22 @@ empleos:
           EOF_FILE
           mkdir -p app
           cat > app/build.gradle.kts <<'EOF_FILE'
-          complementos {
+          plugins {
               id("com.android.application")
               id("org.jetbrains.kotlin.android")
           }
-          Android {
-              espacio de nombres = "com.example.textobloqueo"
+          android {
+              namespace = "com.example.textobloqueo"
               compileSdk = 34
-              Configuración predeterminada {
+              defaultConfig {
                   applicationId = "com.example.textobloqueo"
                   minSdk = 26
                   targetSdk = 34
                   versionCode = 1
                   versionName = "1.0"
               }
-              opciones de compilación {
-                  Compatibilidad de origen = JavaVersion.VERSION_17
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
                   targetCompatibility = JavaVersion.VERSION_17
               }
               kotlinOptions { jvmTarget = "17" }
@@ -62,41 +62,41 @@ empleos:
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.SET_WALLPAPER" />
-              <aplicación
+              <application
                   android:label="Texto de bloqueo"
                   android:theme="@android:style/Theme.Material.Light.NoActionBar">
                   <activity android:name=".MainActivity" android:exported="true">
-                      <filtro-de-intención>
+                      <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
                           <category android:name="android.intent.category.LAUNCHER" />
                       </intent-filter>
-                  </actividad>
-              </aplicación>
-          </manifiesto>
+                  </activity>
+              </application>
+          </manifest>
           EOF_FILE
           mkdir -p app/src/main/java/com/example/textobloqueo
           cat > app/src/main/java/com/example/textobloqueo/MainActivity.kt <<'EOF_FILE'
-          paquete com.example.textobloqueo
+          package com.example.textobloqueo
 
-          importar android.app.Activity
+          import android.app.Activity
           import android.app.WallpaperManager
           import android.graphics.*
-          importar android.os.Bundle
+          import android.os.Bundle
           import android.text.Layout
           import android.text.StaticLayout
           import android.text.TextPaint
           import android.text.TextWatcher
-          importar android.text.Editable
+          import android.text.Editable
           import android.view.Gravity
           import android.view.View
           import android.widget.*
 
-          clase MainActivity : Activity() {
+          class MainActivity : Activity() {
 
-              privado val textColors = intArrayOf(
-                  Color.BLANCO, Color.NEGRO, 0xFFFFD166.toInt(), 0xFFFF6B6B.toInt(), 0xFF7BDFF2.toInt()
+              private val textColors = intArrayOf(
+                  Color.WHITE, Color.BLACK, 0xFFFFD166.toInt(), 0xFFFF6B6B.toInt(), 0xFF7BDFF2.toInt()
               )
-              fondo privado val = arrayOf(
+              private val backgrounds = arrayOf(
                   intArrayOf(0xFF2B3A67.toInt(), 0xFF0F1226.toInt()),
                   intArrayOf(0xFFF4D58D.toInt(), 0xFFE07A5F.toInt()),
                   intArrayOf(0xFF1B4332.toInt(), 0xFF081C15.toInt()),
@@ -104,30 +104,30 @@ empleos:
                   intArrayOf(0xFFFFFFFF.toInt(), 0xFFDDDDDD.toInt())
               )
 
-              variable privada textColor = Color.WHITE
-              var privada bg = fondos[0]
-              variable privada sizeVal = 70
-              variable privada posVal = 60
-              var privada align = Layout.Alignment.ALIGN_CENTER
-              var privada negrita = falso
+              private var textColor = Color.WHITE
+              private var bg = backgrounds[0]
+              private var sizeVal = 70
+              private var posVal = 60
+              private var align = Layout.Alignment.ALIGN_CENTER
+              private var bold = false
 
               private lateinit var preview: ImageView
-              edición privada de lateinit var: EditText
+              private lateinit var edit: EditText
 
               private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
-              anular la función onCreate(savedInstanceState: Bundle?) {
+              override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
                   val prefs = getSharedPreferences("lock", MODE_PRIVATE)
 
                   val root = LinearLayout(this).apply {
-                      orientación = LinearLayout.VERTICAL
+                      orientation = LinearLayout.VERTICAL
                       setPadding(dp(16), dp(16), dp(16), dp(24))
                   }
                   val scroll = ScrollView(this).apply { addView(root) }
-                  establecerContentView(desplazamiento)
+                  setContentView(scroll)
 
-                  raíz.addView(TextView(this).apply {
+                  root.addView(TextView(this).apply {
                       text = "Texto para tu pantalla de bloqueo"
                       textSize = 20f
                       setTypeface(null, Typeface.BOLD)
@@ -136,77 +136,77 @@ empleos:
                   preview = ImageView(this).apply { adjustViewBounds = true }
                   val pw = dp(170)
                   val dm = resources.displayMetrics
-                  raíz.addView(preview, LinearLayout.LayoutParams(pw, pw * dm.heightPixels / dm.widthPixels).apply {
-                      gravedad = Gravedad.CENTRO_HORIZONTAL; margensuperior = dp(12); margeninferior = dp(12)
+                  root.addView(preview, LinearLayout.LayoutParams(pw, pw * dm.heightPixels / dm.widthPixels).apply {
+                      gravity = Gravity.CENTER_HORIZONTAL; topMargin = dp(12); bottomMargin = dp(12)
                   })
 
-                  editar = EditText(this).apply {
+                  edit = EditText(this).apply {
                       setText(prefs.getString("text", "Respira.\nTodo va bien."))
                       hint = "Escribe tu texto"
                       minLines = 3
-                      gravedad = Gravedad.TOP
+                      gravity = Gravity.TOP
                       addTextChangedListener(object : TextWatcher {
                           override fun afterTextChanged(s: Editable?) = refresh()
                           override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                           override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
                       })
                   }
-                  raíz.addView(editar)
+                  root.addView(edit)
 
                   root.addView(label("Tamaño"))
-                  raíz.addView(slider(20, 160, sizeVal) { sizeVal = it })
+                  root.addView(slider(20, 160, sizeVal) { sizeVal = it })
                   root.addView(label("Posición vertical"))
-                  raíz.addView(slider(10, 90, posVal) { posVal = it })
+                  root.addView(slider(10, 90, posVal) { posVal = it })
 
                   root.addView(label("Alineación"))
-                  raíz.addView(buttonRow(
-                      "Izquierda" a { align = Layout.Alignment.ALIGN_NORMAL; refresh() },
-                      "Centro" a { align = Layout.Alignment.ALIGN_CENTER; refresh() },
-                      "Derecha" a { align = Layout.Alignment.ALIGN_OPPOSITE; refresh() },
-                      "Negrita" a { negrita = !negrita; actualizar() }
+                  root.addView(buttonRow(
+                      "Izquierda" to { align = Layout.Alignment.ALIGN_NORMAL; refresh() },
+                      "Centro" to { align = Layout.Alignment.ALIGN_CENTER; refresh() },
+                      "Derecha" to { align = Layout.Alignment.ALIGN_OPPOSITE; refresh() },
+                      "Negrita" to { bold = !bold; refresh() }
                   ))
 
                   root.addView(label("Color del texto"))
-                  raíz.addView(swatches(textColors.map { intArrayOf(it, it) }) { textColor = it[0]; refresh() })
-                  raíz.addView(etiqueta("Fondo"))
-                  raíz.addView(swatches(backgrounds.toList()) { bg = it; refresh() })
+                  root.addView(swatches(textColors.map { intArrayOf(it, it) }) { textColor = it[0]; refresh() })
+                  root.addView(label("Fondo"))
+                  root.addView(swatches(backgrounds.toList()) { bg = it; refresh() })
 
-                  raíz.addView(Button(this).apply {
+                  root.addView(Button(this).apply {
                       text = "Poner en pantalla de bloqueo"
                       setOnClickListener { applyToLockScreen(prefs.edit()) }
                   }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(20) })
 
-                  refrescar()
+                  refresh()
               }
 
               private fun label(t: String) = TextView(this).apply {
-                  texto = t; setPadding(0, dp(12), 0, dp(4))
+                  text = t; setPadding(0, dp(12), 0, dp(4))
               }
 
-              fun privada deslizadora(mín: Int, máx: Int, inicio: Int, al cambiar: (Int) -> Unidad) =
+              private fun slider(min: Int, max: Int, start: Int, onChange: (Int) -> Unit) =
                   SeekBar(this).apply {
-                      esto.máximo = máximo - mínimo
-                      progreso = inicio - min
+                      this.max = max - min
+                      progress = start - min
                       setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                           override fun onProgressChanged(s: SeekBar?, p: Int, u: Boolean) { onChange(p + min); refresh() }
-                          anular la función onStartTrackingTouch(s: SeekBar?) {}
-                          anular la función onStopTrackingTouch(s: SeekBar?) {}
+                          override fun onStartTrackingTouch(s: SeekBar?) {}
+                          override fun onStopTrackingTouch(s: SeekBar?) {}
                       })
                   }
 
               private fun buttonRow(vararg items: Pair<String, () -> Unit>) = LinearLayout(this).apply {
-                  elementos.forEach { (t, a) ->
+                  items.forEach { (t, a) ->
                       addView(Button(context).apply {
-                          texto = t; tamañoTexto = 11f; estáEnMayúsculas = falso
+                          text = t; textSize = 11f; isAllCaps = false
                           setOnClickListener { a() }
                       }, LinearLayout.LayoutParams(0, -2, 1f))
                   }
               }
 
               private fun swatches(colors: List<IntArray>, onPick: (IntArray) -> Unit) = LinearLayout(this).apply {
-                  colores.paraCada { c ->
+                  colors.forEach { c ->
                       addView(View(context).apply {
-                          fondo = android.graphics.drawable.GradientDrawable(
+                          background = android.graphics.drawable.GradientDrawable(
                               android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM, c
                           ).apply { cornerRadius = dp(10).toFloat(); setStroke(dp(1), 0x55888888) }
                           setOnClickListener { onPick(c) }
@@ -220,47 +220,47 @@ empleos:
                   val p = Paint().apply { shader = LinearGradient(0f, 0f, 0f, h.toFloat(), bg[0], bg[1], Shader.TileMode.CLAMP) }
                   c.drawRect(0f, 0f, w.toFloat(), h.toFloat(), p)
                   val tp = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-                      color = color del texto
-                      Tamaño del texto = valor del tamaño * w / 1080f
-                      tipo de letra = si (negrita) Tipo de letra.DEFAULT_BOLD sino Tipo de letra.DEFAULT
+                      color = textColor
+                      textSize = sizeVal * w / 1080f
+                      typeface = if (bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
                       setShadowLayer(textSize * 0.15f, 0f, textSize * 0.04f, 0x66000000)
                   }
-                  val texto = editar.texto.toString().ifEmpty { " " }
+                  val text = edit.text.toString().ifEmpty { " " }
                   val tw = (w * 0.8f).toInt()
                   val layout = StaticLayout.Builder.obtain(text, 0, text.length, tp, tw)
                       .setAlignment(align).build()
-                  c.guardar()
+                  c.save()
                   c.translate(w * 0.1f, h * posVal / 100f - layout.height / 2f)
-                  diseño.draw(c)
+                  layout.draw(c)
                   c.restore()
-                  devolver bmp
+                  return bmp
               }
 
-              privado divertido refresh() {
-                  si (!::preview.isInitialized || !::edit.isInitialized) devolver
+              private fun refresh() {
+                  if (!::preview.isInitialized || !::edit.isInitialized) return
                   val dm = resources.displayMetrics
                   preview.setImageBitmap(render(dm.widthPixels / 3, dm.heightPixels / 3))
               }
 
               private fun applyToLockScreen(e: android.content.SharedPreferences.Editor) {
                   val dm = resources.displayMetrics
-                  intentar {
+                  try {
                       val bmp = render(dm.widthPixels, dm.heightPixels)
                       WallpaperManager.getInstance(this)
                           .setBitmap(bmp, null, true, WallpaperManager.FLAG_LOCK)
-                      e.putString("texto", edit.text.toString()).apply()
+                      e.putString("text", edit.text.toString()).apply()
                       Toast.makeText(this, "Listo: bloquea el móvil para verlo", Toast.LENGTH_LONG).show()
-                  } catch (ej: Excepción) {
+                  } catch (ex: Exception) {
                       Toast.makeText(this, "No se pudo cambiar el fondo: ${ex.message}", Toast.LENGTH_LONG).show()
                   }
               }
           }
           EOF_FILE
-      - nombre: Compilar
-        ejecutar: cd proj && gradle assembleDebug --no-daemon
-      - nombre: Publicar APK
-        entorno:
+      - name: Compilar
+        run: cd proj && gradle assembleDebug --no-daemon
+      - name: Publicar APK
+        env:
           GH_TOKEN: ${{ github.token }}
-        correr: |
+        run: |
           cp proj/app/build/outputs/apk/debug/app-debug.apk TextoBloqueo.apk
           gh release create "v${{ github.run_number }}" TextoBloqueo.apk --repo "${{ github.repository }}" --title "APK v${{ github.run_number }}" --notes "Descarga TextoBloqueo.apk"
